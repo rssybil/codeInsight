@@ -2,11 +2,12 @@ from flask import Flask, request, jsonify
 import openai
 import re
 from flask_cors import CORS
+import os
+from config import API_KEY
 
 app = Flask(__name__)
 CORS(app)
-openai.api_key = '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'
-
+openai.api_key = API_KEY
 
 def generate_collaboration_prompt(user_message, current_code, chat_history=None):
     prompt = f"""
