@@ -43,15 +43,6 @@ def generate_collaboration_prompt(user_message, current_code, chat_history=None)
     return prompt
 
 
-# def parse_response(response):
-#     explanation_match = re.search(r'1\.\s\*\*Explanation\*\*:\n(.*?)\n2\.\s\*\*Code Section\*\*:', response, re.DOTALL)
-#     code_section_match = re.search(r'2\.\s\*\*Code Section\*\*:\n```python\n(.*?)\n```', response, re.DOTALL)
-
-#     explanation = explanation_match.group(1).strip() if explanation_match else ""
-#     code_section = code_section_match.group(1).strip() if code_section_match else ""
-
-#     return explanation, code_section
-
 def parse_response(response):
     # Split response into Explanation and Code Section based on structured format
     explanation = ""
