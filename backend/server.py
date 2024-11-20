@@ -3,11 +3,13 @@ import openai
 import re
 from flask_cors import CORS
 import os
-from config import API_KEY
 
 app = Flask(__name__)
 CORS(app)
-openai.api_key = API_KEY
+# openai.api_key = API_KEY
+
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
 
 def generate_collaboration_prompt(user_message, current_code, chat_history=None):
     prompt = f"""
