@@ -1,4 +1,0 @@
-flask
-openai
-flask_cors
-dotenv
