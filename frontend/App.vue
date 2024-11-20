@@ -1,12 +1,21 @@
 <script setup>
 import { ref, nextTick, onMounted } from 'vue'
+import { Codemirror } from "vue-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { python } from "@codemirror/lang-python";
+
+import { oneDark } from "@codemirror/theme-one-dark";
+
+import { EditorView } from "@codemirror/view"
 
 const content = ref('')
-const BTN_TEXT = 'Submit 🚀'
+const BTN_TEXT = '🚀'
 const res = ref('🔍 Ask me any code you want to check or polish!')
-const btnText = ref(BTN_TEXT)
-const keyword = ref('')
+const lastPrompt = ref('Last prompt')
 
+const btnText = ref(BTN_TEXT)
+const code = ref(`# please input your code here!`);
+const extensions = [oneDark,python()];
 
 function sleep(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -67,46 +76,94 @@ short explanation about the bug and the coding style
   }
 }
 
-
-
 </script>
 
 <template>
   <h2>🤖️ CodeInsight</h2>
-  <div class="chat">
-  <textarea
-  class="input"
-  placeholder="Polish code for me...🌽"
-  v-model="content">
-</textarea>
-    <div class="button-block">
-      <button type="button" @click="searchKeyword" class="btn">
-        <strong>{{ btnText }}</strong>
-        <div id="container-stars">
-          <div id="stars"></div>
+  <div class="container">
+    <div class="chat">
+      <div class="dialogue">
+        <div class="card-last-prompt">
+          <pre>{{ lastPrompt }}</pre>
         </div>
-        <div id="glow">
-          <div class="circle"></div>
-          <div class="circle"></div>
+        <div class="card-result">
+          <pre>{{ res }}</pre>
         </div>
-      </button>
+      </div>
+      
+      <div class="input-box">
+        <textarea
+          class="input"
+          placeholder="Polish code for me...🌽"
+          v-model="content">
+        </textarea>
+        <div class="button-block">
+          <button type="button" @click="searchKeyword" class="btn">
+            <strong>{{ btnText }}</strong>
+            <div id="container-stars">
+              <div id="stars"></div>
+            </div>
+            <div id="glow">
+              <div class="circle"></div>
+              <div class="circle"></div>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <pre>{{ res }}</pre>
+    <div class="right">
+      <codemirror v-model="code" placeholder="Code gose here..." :style="{ height: '100%'}" :autofocus="true"
+          :tabSize="3" :extensions="extensions" />
     </div>
   </div>
 </template>
 
 <style scoped>
+
+.input-box{
+  display: flex;
+}
+
 h1 {
   margin-bottom: 64px;
 }
-/* 
-.chat {
-} */
+
+.dialogue{
+  display: flex;
+  flex-direction: column;
+  height: 450px;
+  overflow: scroll;
+}
+
+.container{
+  display: flex;
+  width: 100%;
+  height: 80%;
+  box-sizing: border-box;
+}
+.chat{
+  width: 40%;
+  /* height: 100%; */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.output-container{
+  background-color: #282c35;
+  padding: 5px 5px 5px 5px;
+}
+
+.right{
+  width: 55%;
+  height: 100%;
+  margin-left: 5%;
+}
+
 .input { 
   width: calc(100% - 20px);
-  min-height: 200px; /* Set a reasonable height for code snippets */
+  /* min-height: 150px; Set a reasonable height for code snippets */
+  max-height: 150px; /* Set a reasonable height for code snippets */
   padding: 12px;
   border: none;
   border-radius: 16px;
@@ -117,6 +174,8 @@ h1 {
   font-family: 'Courier New', Courier, monospace; /* Use monospace font for code */
   line-height: 1.5; /* Improve readability */
   overflow: auto; /* Add scrollbars if content overflows */
+  bottom: 10px;
+
 }
 
 
@@ -171,49 +230,40 @@ button svg {
   transition: transform 0.3s ease-in-out;
 }
 
-.card {
-  background: #07182e;
+
+.card-last-prompt{
+  max-width: 75%;
+  align-self: flex-start;
+  width: auto;
+  background: #282c35;
   position: relative;
   display: flex;
   place-content: center;
   place-items: center;
   overflow: hidden;
   border-radius: 16px;
-  margin: 24px 0;
+  padding: 0rem 2rem 0rem 2rem;
+  margin-bottom: 25px;
 }
 
-.card {
-  margin-top: 32px;
-}
-
-.card span,
-.card pre {
-  z-index: 1;
-  color: white;
-  font-size: 16px;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  background-image: linear-gradient(180deg, rgb(0, 183, 255), rgb(255, 48, 255));
-  height: 130%;
-  animation: rotBGimg 3s linear infinite;
-  transition: all 0.2s linear;
-}
-
-.card::after {
-  content: '';
-  position: absolute;
-  background: #07182e;
-  inset: 5px;
+.card-result {
+  /* width: auto; */
+  align-self: flex-end;
+  max-width: 75%;
+  background: #282c35;
+  /* position: relative;
+  display: flex;
+  place-content: center;
+  place-items: center; */
+  overflow: hidden;
   border-radius: 16px;
+  padding: 0rem 2rem 0rem 2rem;
 }
+
 
 .button-block {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: end;
 }
 .btn {
@@ -388,21 +438,4 @@ strong {
   margin-bottom: 20px;
 }
 
-.gallery {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.photo-item {
-  margin: 10px;
-}
-
-.photo {
-  width: 200px;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 </style>
