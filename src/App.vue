@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="jsx">
 import { ref, nextTick, onMounted } from 'vue'
 import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -8,6 +8,9 @@ import { oneDark } from "@codemirror/theme-one-dark";
 
 import { EditorView } from "@codemirror/view"
 
+import { AppleIcon } from 'tdesign-icons-vue-next';
+
+const icon = () => <AppleIcon />;
 const content = ref('')
 const BTN_TEXT = '🚀'
 const res = ref('🔍 Ask me any code you want to check or polish!')
@@ -22,6 +25,7 @@ function sleep(milliseconds) {
 }
 
 const searchKeyword = async () => { 
+// current_code: str, user_message: str 
   btnText.value = 'Generating Code... 🔍'
 
   const userMessages = [
@@ -86,6 +90,7 @@ short explanation about the bug and the coding style
         <div class="card-last-prompt">
           <pre>{{ lastPrompt }}</pre>
         </div>
+        <t-avatar><AppleIcon></AppleIcon></t-avatar>
         <div class="card-result">
           <pre>{{ res }}</pre>
         </div>
@@ -233,7 +238,7 @@ button svg {
 
 .card-last-prompt{
   max-width: 75%;
-  align-self: flex-start;
+  align-self: flex-end;
   width: auto;
   background: #282c35;
   position: relative;
@@ -248,9 +253,9 @@ button svg {
 
 .card-result {
   /* width: auto; */
-  align-self: flex-end;
+  align-self: flex-start;
   max-width: 75%;
-  background: #282c35;
+  /* background: #282c35; */
   /* position: relative;
   display: flex;
   place-content: center;
@@ -258,6 +263,7 @@ button svg {
   overflow: hidden;
   border-radius: 16px;
   padding: 0rem 2rem 0rem 2rem;
+  color: black;
 }
 
 

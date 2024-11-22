@@ -16,7 +16,10 @@
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.34.3",
+    "@primevue/themes": "^4.2.2",
     "codemirror": "^6.0.1",
+    "primevue": "^4.2.2",
+    "tdesign-vue-next": "^1.10.4",
     "vue": "^3.2.45",
     "vue-codemirror": "^6.1.1"
   },
