@@ -1,85 +1,105 @@
 <script setup lang="jsx">
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted } from 'vue';
 import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
-
 import { oneDark } from "@codemirror/theme-one-dark";
-
-import { EditorView } from "@codemirror/view"
-
+import { EditorView } from "@codemirror/view";
 import { AppleIcon } from 'tdesign-icons-vue-next';
+import { codeCollaboration, quickAction } from './apiservice'; // 导入API请求函数
 
 const icon = () => <AppleIcon />;
-const content = ref('')
-const BTN_TEXT = '🚀'
-const res = ref('🔍 Ask me any code you want to check or polish!')
-const lastPrompt = ref('Last prompt')
+const content = ref('');
+const BTN_TEXT = '🚀';
+const res = ref('🔍 Ask me any code you want to check or polish!');
+const lastPrompt = ref('Last prompt');
 
-const btnText = ref(BTN_TEXT)
+const btnText = ref(BTN_TEXT);
 const code = ref(`# please input your code here!`);
-const extensions = [oneDark,python()];
+const extensions = [oneDark, python()];
 
 function sleep(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-const searchKeyword = async () => { 
-// current_code: str, user_message: str 
-  btnText.value = 'Generating Code... 🔍'
+const searchKeyword = async () => {
+  btnText.value = 'Generating Code... 🔍';
 
   const userMessages = [
-    { role: 'system', content: `Observe the following faulty code which is complete with no extra context. Your task is to fix up the code and polish the coding style and explain on the modification.
+    {
+      role: 'system',
+      content: `Observe the following faulty code which is complete with no extra context. Your task is to fix up the code and polish the coding style and explain on the modification.
 You have to write the fixed code again. Do not write anything else in your response. Your reply should be like this:
 Fixed Code:
 here is your fixed code
 
 Feedback:
-short explanation about the bug and the coding style
-`},
+short explanation about the bug and the coding style`
+    },
     { role: 'user', content: content.value }
-  ]
+  ];
 
   const requestData = {
     model: 'gpt-4o', // Corrected model name
     messages: userMessages,
-    // Remove 'stream' unless you intend to handle streaming responses
-    // stream: true,
-  }
+  };
 
   const fetchOptions = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // Ensure your API key is correctly set and secure
       'Authorization': `Bearer ${import.meta.env.VITE_OPEN_API_KEY}`,
     },
     body: JSON.stringify(requestData),
-  }
+  };
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', fetchOptions)
-    
-    // Check if the response is successful
+    const response = await fetch('https://api.openai.com/v1/chat/completions', fetchOptions);
+
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Error:', errorText)
-      btnText.value = BTN_TEXT
-      return
+      const errorText = await response.text();
+      console.error('Error:', errorText);
+      btnText.value = BTN_TEXT;
+      return;
     }
 
-    const jsonResponse = await response.json()
-    const payload = jsonResponse.choices[0].message.content.trim()
-    console.log('Assistant:', payload)
+    const jsonResponse = await response.json();
+    const payload = jsonResponse.choices[0].message.content.trim();
+    console.log('Assistant:', payload);
     
-    res.value = payload
+    res.value = payload;
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
   } finally {
-    btnText.value = BTN_TEXT
+    btnText.value = BTN_TEXT;
   }
-}
+};
 
+// 新增用于调用 codeCollaboration API 的方法
+const handleCodeCollaboration = async () => {
+  const userMessage = "This is a test message.";
+  const currentCode = code.value;
+
+  try {
+    const result = await codeCollaboration(userMessage, currentCode);
+    console.log('Code Collaboration Result:', result);
+  } catch (error) {
+    console.error('Error in handleCodeCollaboration:', error);
+  }
+};
+
+// 新增用于调用 quickAction API 的方法
+const handleQuickAction = async () => {
+  const action = "Test Action";
+  const currentCode = code.value;
+
+  try {
+    const result = await quickAction(action, currentCode);
+    console.log('Quick Action Result:', result);
+  } catch (error) {
+    console.error('Error in handleQuickAction:', error);
+  }
+};
 </script>
 
 <template>
@@ -113,6 +133,9 @@ short explanation about the bug and the coding style
               <div class="circle"></div>
             </div>
           </button>
+          <!-- 新增两个按钮用于测试 API 函数 -->
+          <button type="button" @click="handleCodeCollaboration">Test Code Collaboration</button>
+          <button type="button" @click="handleQuickAction">Test Quick Action</button>
         </div>
       </div>
     </div>
@@ -122,6 +145,9 @@ short explanation about the bug and the coding style
     </div>
   </div>
 </template>
+
+
+
 
 <style scoped>
 
