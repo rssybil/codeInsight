@@ -7,9 +7,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 # openai.api_key = API_KEY
-
-openai.api_key = os.getenv('OPENAI_API_KEY')
-
+openai.api_key = ''
 
 def generate_collaboration_prompt(user_message, current_code, chat_history=None):
     prompt = f"""
@@ -67,7 +65,7 @@ def hello_world():
 
 @app.route('/api/code-collaboration', methods=['POST'])
 def code_collaboration():
-    data = request.json
+    data = request.get_json() or {}
     current_code = data.get('current_code', '')
     user_message = data.get('user_message', '')
 
@@ -83,12 +81,13 @@ def code_collaboration():
         explanation, code_section = parse_response(response_text)
         return jsonify({"response_text": response_text, "user_message": user_message, "explanation": explanation, "code_section": code_section})
     except Exception as e:
+        print(f"error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/quick-action', methods=['POST'])
 def quick_action():
-    data = request.json
+    data = request.get_json() or {}
     action = data.get('action')
     current_code = data.get('current_code', '')
 
