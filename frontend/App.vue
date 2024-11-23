@@ -5,18 +5,30 @@ import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView } from "@codemirror/view";
-import { AppleIcon } from 'tdesign-icons-vue-next';
+import { SystemCodeIcon } from 'tdesign-icons-vue-next';
 import { codeCollaboration, quickAction } from './apiservice'; // 导入API请求函数
 
-const icon = () => <AppleIcon />;
 const content = ref('');
-const BTN_TEXT = '🚀';
-const res = ref('🔍 Ask me any code you want to check or polish!');
-const lastPrompt = ref('Last prompt');
+const BTN_TEXT = 'Submit 🚀';
+const res = ref('🔍 Ask me any code you want to check or polish! \n E.g. Help me achieve a 2 sum algorithm in Python ');
+const customTheme = EditorView.theme({
+  '&': {
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    border: '1px solid #ddd',
+  },
+  '.cm-content': {
+    fontFamily: 'monospace',
+    fontSize: '14px',
+    color: 'black',
+  },
+});
+
+const lastPrompt = ref('');
 
 const btnText = ref(BTN_TEXT);
 const code = ref(`# please input your code here!`);
-const extensions = [oneDark, python()];
+const extensions = [customTheme, python()];
 
 function sleep(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -38,6 +50,8 @@ short explanation about the bug and the coding style`
     },
     { role: 'user', content: content.value }
   ];
+
+  
 
   const requestData = {
     model: 'gpt-4o', // Corrected model name
@@ -77,12 +91,16 @@ short explanation about the bug and the coding style`
 
 // 新增用于调用 codeCollaboration API 的方法
 const handleCodeCollaboration = async () => {
-  const userMessage = "This is a test message.";
+  const userMessage = content.value;
   const currentCode = code.value;
 
   try {
     const result = await codeCollaboration(userMessage, currentCode);
     console.log('Code Collaboration Result:', result);
+    lastPrompt.value = result.user_message
+    code.value = result.code_section
+    res.value = result.explanation
+    content.value = ""
   } catch (error) {
     console.error('Error in handleCodeCollaboration:', error);
   }
@@ -107,13 +125,16 @@ const handleQuickAction = async () => {
   <div class="container">
     <div class="chat">
       <div class="dialogue">
-        <div class="card-last-prompt">
+        <div class="card-last-prompt" v-if="lastPrompt.value !== '' ">
           <pre>{{ lastPrompt }}</pre>
         </div>
-        <t-avatar><AppleIcon></AppleIcon></t-avatar>
-        <div class="card-result">
-          <pre>{{ res }}</pre>
+        <div class="response-box">
+          <t-avatar class="avatar"><SystemCodeIcon></SystemCodeIcon></t-avatar>
+          <div class="card-result">
+            <pre>{{ res }}</pre>
+          </div>
         </div>
+        
       </div>
       
       <div class="input-box">
@@ -123,7 +144,7 @@ const handleQuickAction = async () => {
           v-model="content">
         </textarea>
         <div class="button-block">
-          <button type="button" @click="searchKeyword" class="btn">
+          <button type="button" @click="handleCodeCollaboration" class="btn">
             <strong>{{ btnText }}</strong>
             <div id="container-stars">
               <div id="stars"></div>
@@ -133,9 +154,9 @@ const handleQuickAction = async () => {
               <div class="circle"></div>
             </div>
           </button>
-          <!-- 新增两个按钮用于测试 API 函数 -->
+          <!-- 新增两个按钮用于测试 API 函数
           <button type="button" @click="handleCodeCollaboration">Test Code Collaboration</button>
-          <button type="button" @click="handleQuickAction">Test Quick Action</button>
+          <button type="button" @click="handleQuickAction">Test Quick Action</button> -->
         </div>
       </div>
     </div>
@@ -151,8 +172,41 @@ const handleQuickAction = async () => {
 
 <style scoped>
 
+.custom-codemirror .cm-editor {
+  border-radius: 8px; /* 设置圆角 */
+  background-color: white; /* 背景色为白色 */
+  border: 1px solid #ddd; /* 添加边框颜色（可选） */
+  padding: 10px; /* 内边距，让内容不贴边（可选） */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* 可选的阴影效果 */
+}
+
+/* 设置代码区域的背景色和文字颜色 */
+.custom-codemirror .cm-content {
+  background-color: white;
+  color: black; /* 设置文字颜色 */
+  border-radius: inherit; /* 继承容器的圆角 */
+}
+
+.avatar{
+  margin: 1rem 0px;
+}
 .input-box{
   display: flex;
+  align-items: center;
+  width: calc(100% - 20px);
+  /* min-height: 150px; Set a reasonable height for code snippets */
+  max-height: 200px; /* Set a reasonable height for code snippets */
+  padding: 12px;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 2px 2px 7px 0 rgba(0, 0, 0, 0.2);
+  outline: none;
+  font-size: 16px;
+  resize: none; /* Allow users to resize the textarea vertically */
+  font-family: 'Courier New', Courier, monospace; /* Use monospace font for code */
+  line-height: 1.5; /* Improve readability */
+  overflow: auto; /* Add scrollbars if content overflows */
+  bottom: 10px;
 }
 
 h1 {
@@ -162,8 +216,14 @@ h1 {
 .dialogue{
   display: flex;
   flex-direction: column;
-  height: 450px;
+  height: 500px;
   overflow: scroll;
+  scrollbar-width: none;
+
+}
+
+.response-box{
+  display: flex;
 }
 
 .container{
@@ -181,7 +241,7 @@ h1 {
   justify-content: space-between;
 }
 .output-container{
-  background-color: #282c35;
+  background-color: #d9dadb;
   padding: 5px 5px 5px 5px;
 }
 
@@ -192,16 +252,14 @@ h1 {
 }
 
 .input { 
-  width: calc(100% - 20px);
+  width: calc(100% - 128px);
   /* min-height: 150px; Set a reasonable height for code snippets */
-  max-height: 150px; /* Set a reasonable height for code snippets */
+  max-height: 200px; /* Set a reasonable height for code snippets */
   padding: 12px;
   border: none;
-  border-radius: 16px;
-  box-shadow: 2px 2px 7px 0 rgba(0, 0, 0, 0.2);
   outline: none;
   font-size: 16px;
-  resize: vertical; /* Allow users to resize the textarea vertically */
+  resize:none;
   font-family: 'Courier New', Courier, monospace; /* Use monospace font for code */
   line-height: 1.5; /* Improve readability */
   overflow: auto; /* Add scrollbars if content overflows */
@@ -236,7 +294,7 @@ button {
   cursor: pointer;
   height: 32px;
   font-size: 16px;
-  margin-top: 24px;
+  /* margin-top: 24px; */
   background: royalblue;
   color: white;
   padding: 0.7em 1em;
@@ -263,17 +321,19 @@ button svg {
 
 
 .card-last-prompt{
+  margin-right: 10px;
+  /* line-height: 10px; */
   max-width: 75%;
   align-self: flex-end;
   width: auto;
-  background: #282c35;
+  background: #e6e7e8;
   position: relative;
   display: flex;
   place-content: center;
   place-items: center;
   overflow: hidden;
   border-radius: 16px;
-  padding: 0rem 2rem 0rem 2rem;
+  padding: 0rem 1.2rem 0rem 1.2rem;
   margin-bottom: 25px;
 }
 
@@ -281,21 +341,20 @@ button svg {
   /* width: auto; */
   align-self: flex-start;
   max-width: 75%;
-  /* background: #282c35; */
-  /* position: relative;
-  display: flex;
-  place-content: center;
-  place-items: center; */
-  overflow: hidden;
+  overflow: scroll;
+  scrollbar-width: none !important; /* 隐藏滚动条 (仅适用于 Firefox) */
   border-radius: 16px;
   padding: 0rem 2rem 0rem 2rem;
   color: black;
 }
 
+.card-last-prompt::-webkit-scrollbar {
+  display: none; /* 隐藏滚动条 (仅适用于 Chrome、Safari 和 Edge Chromium) */
+}
 
 .button-block {
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: end;
 }
 .btn {
